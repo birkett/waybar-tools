@@ -10,46 +10,36 @@ Spotify::Spotify()
 
 std::string Spotify::getOutput()
 {
-    std::string status = spotify->PlaybackStatus();
+    std::string output;
+    std::string status;
     std::string artist;
     std::string album;
     std::string title;
-    std::string output;
 
-    bool isPlaying = status == "Playing";
-    bool isPaused = status == "Paused";
-    bool isStopped = status == "Stopped";
+    try {
+        status = spotify->PlaybackStatus();
 
-    for (auto const& item : spotify->Metadata())
-    {
-        if (item.first == "xesam:artist") {
-            artist = item.second.reader().recurse().get_string();
+        for (auto const& item : spotify->Metadata())
+        {
+            if (item.first == "xesam:artist") {
+                artist = item.second.reader().recurse().get_string();
+            }
+
+            if (item.first == "xesam:album") {
+                album = item.second.reader().get_string();
+            }
+
+            if (item.first == "xesam:title") {
+                title = item.second.reader().get_string();
+            }
         }
-
-        if (item.first == "xesam:album") {
-            album = item.second.reader().get_string();
-        }
-
-        if (item.first == "xesam:title") {
-            title = item.second.reader().get_string();
-        }
-    }
-
-    output.append("\uF1BC "); // Spotify icon.
-
-    if (isStopped) {
-        output.append("\uF04D "); // Stopped icon.
+    } catch (DBus::Error &error) {
+        std::cerr << error.message() << std::endl;
 
         return output;
     }
 
-    if (isPlaying) {
-        output.append("\uF04B "); // Play icon.
-    }
-
-    if (isPaused) {
-        output.append("\uF28B "); // Pause icon.
-    }
+    output.append(Spotify::getIcons(status));
 
     if (artist.length() > 0) {
         output.append(artist);
@@ -63,6 +53,31 @@ std::string Spotify::getOutput()
     if (title.length() > 0) {
         output.append(" - ");
         output.append(title);
+    }
+
+    return output;
+}
+
+std::string Spotify::getIcons(const std::string &status)
+{
+    bool isPlaying = status == "Playing";
+    bool isPaused = status == "Paused";
+    bool isStopped = status == "Stopped";
+
+    std::string output;
+
+    output.append("\uF1BC "); // Spotify icon.
+
+    if (isStopped) {
+        output.append("\uF04D "); // Stopped icon.
+    }
+
+    if (isPlaying) {
+        output.append("\uF04B "); // Play icon.
+    }
+
+    if (isPaused) {
+        output.append("\uF28B "); // Pause icon.
     }
 
     return output;

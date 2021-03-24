@@ -14,6 +14,8 @@ public:
     std::string getOutput() final;
 
 private:
+    static std::string getIcons(const std::string &status);
+
     DBus::BusDispatcher dispatcher;
     SpotifyDBusInterface* spotify;
 };
