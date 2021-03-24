@@ -10,27 +10,24 @@ Spotify::Spotify()
 
 std::string Spotify::getOutput()
 {
+    SpotifyMeta metadata;
     std::string output;
-    std::string status;
-    std::string artist;
-    std::string album;
-    std::string title;
 
     try {
-        status = spotify->PlaybackStatus();
+        metadata.status = spotify->PlaybackStatus();
 
         for (auto const& item : spotify->Metadata())
         {
             if (item.first == "xesam:artist") {
-                artist = item.second.reader().recurse().get_string();
+                metadata.artist = item.second.reader().recurse().get_string();
             }
 
             if (item.first == "xesam:album") {
-                album = item.second.reader().get_string();
+                metadata.album = item.second.reader().get_string();
             }
 
             if (item.first == "xesam:title") {
-                title = item.second.reader().get_string();
+                metadata.title = item.second.reader().get_string();
             }
         }
     } catch (DBus::Error &error) {
@@ -39,44 +36,25 @@ std::string Spotify::getOutput()
         return output;
     }
 
-    output.append(Spotify::getIcons(status));
-
-    if (artist.length() > 0) {
-        output.append(artist);
-    }
-
-    if (album.length() > 0) {
-        output.append(" - ");
-        output.append(album);
-    }
-
-    if (title.length() > 0) {
-        output.append(" - ");
-        output.append(title);
-    }
+    output.append(Spotify::getIcons(metadata));
+    output.append(metadata.toString());
 
     return output;
 }
 
-std::string Spotify::getIcons(const std::string &status)
+std::string Spotify::getIcons(const SpotifyMeta &meta)
 {
-    bool isPlaying = status == "Playing";
-    bool isPaused = status == "Paused";
-    bool isStopped = status == "Stopped";
+    std::string output = "\uF1BC "; // Spotify icon.
 
-    std::string output;
-
-    output.append("\uF1BC "); // Spotify icon.
-
-    if (isStopped) {
+    if (meta.isStopped()) {
         output.append("\uF04D "); // Stopped icon.
     }
 
-    if (isPlaying) {
+    if (meta.isPlaying()) {
         output.append("\uF04B "); // Play icon.
     }
 
-    if (isPaused) {
+    if (meta.isPaused()) {
         output.append("\uF28B "); // Pause icon.
     }
 
