@@ -8,10 +8,14 @@
 class Spotify : public ModuleInterface
 {
 public:
-    Spotify() = default;
+    Spotify();
     ~Spotify() = default;
 
     std::string getOutput() final;
+
+private:
+    DBus::BusDispatcher dispatcher;
+    SpotifyDBusInterface* spotify;
 };
 
 #endif //SPOTIFY_H

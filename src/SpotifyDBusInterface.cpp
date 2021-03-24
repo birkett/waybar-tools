@@ -1,44 +1,30 @@
 #include "SpotifyDBusInterface.h"
 
-std::string SpotifyDBusInterface::PlaybackStatus2()
+std::string Player_proxy::PlaybackStatus()
 {
-    return this->PlaybackStatus();
-//    return this->getProperty("PlaybackStatus");
+    return this->getProperty("PlaybackStatus");
 }
 
-void SpotifyDBusInterface::Seeked(const int64_t &Position)
+std::map<std::string, DBus::Variant> Player_proxy::Metadata()
 {
-    if (Position) {
-        return;
-    }
+    return this->getProperty("Metadata");
 }
 
-//std::map<std::string, DBus::Variant> SpotifyDBusInterface::Metadata()
-//{
-//    return this->getProperty("Metadata");
-//}
-//
-//int64_t SpotifyDBusInterface::Position()
-//{
-//    return this->getProperty("Position");
-//}
+DBus::Variant Player_proxy::getProperty(const char *propertyName)
+{
+    DBus::CallMessage call;
+    call.member("Get");
+    call.interface("org.freedesktop.DBus.Properties");
 
-//DBus::Variant SpotifyDBusInterface::getProperty(const char *propertyName)
-//{
-//    DBus::CallMessage call;
-//
-//    call.member("Get");
-//    call.interface("org.freedesktop.DBus.Properties");
-//
-//    DBus::MessageIter wi = call.writer();
-//    wi << PLAYER_INTERFACE_NAME;
-//    wi << propertyName;
-//
-//    DBus::Message ret = this->invoke_method(call);
-//    DBus::MessageIter ri = ret.reader();
-//
-//    DBus::Variant out;
-//    ri >> out;
-//
-//    return out;
-//}
+    DBus::MessageIter wi = call.writer();
+
+    wi << std::string(PLAYER_INTERFACE_NAME) << std::string(propertyName);
+
+    DBus::Message ret = this->invoke_method(call);
+
+    DBus::MessageIter ri = ret.reader();
+    DBus::Variant out;
+    ri >> out;
+
+    return out;
+}

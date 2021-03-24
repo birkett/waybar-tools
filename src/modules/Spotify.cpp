@@ -1,12 +1,16 @@
 #include "modules/Spotify.h"
 
-std::string Spotify::getOutput()
+Spotify::Spotify()
 {
-    DBus::BusDispatcher dispatcher;
-    DBus::default_dispatcher = &dispatcher;
+    DBus::default_dispatcher = &this->dispatcher;
     DBus::Connection bus = DBus::Connection::SessionBus();
 
-    SpotifyDBusInterface spotify(bus, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.spotify");
+    this->spotify = new SpotifyDBusInterface(bus, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.spotify");
+}
 
-    return spotify.PlaybackStatus();
+std::string Spotify::getOutput()
+{
+    auto meta = spotify->Metadata();
+
+    return spotify->PlaybackStatus();
 }
