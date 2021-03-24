@@ -6,20 +6,44 @@ std::string Battery::batteryStatus()
     return loadStringFromSysFs("/sys/class/power_supply/BAT0/status");
 }
 
-std::string Battery::batteryCharge()
+int Battery::batteryCharge()
 {
-    return loadStringFromSysFs("/sys/class/power_supply/BAT0/charge_now");
+    return loadIntFromSysFs("/sys/class/power_supply/BAT0/charge_now");
+}
+
+std::string Battery::batteryIcon(int charge)
+{
+    std::string batteryIcon;
+
+    if (charge < 10) {
+        return "\uF244"; // Battery empty icon.
+    }
+
+    if (charge < 33) {
+        return "\uF243"; // Battery quarter icon.
+    }
+
+    if (charge < 66) {
+        return "\uF242"; // Battery half icon.
+    }
+
+    if (charge < 90) {
+        return "\uF241"; // Battery three quarters icon.
+    }
+
+    return "\uF240"; // Battery full icon.
 }
 
 std::string Battery::getOutput()
 {
+    int charge = batteryCharge();
     std::string outputString;
 
     outputString.append(batteryStatus());
     outputString.append(" - ");
-    outputString.append(batteryCharge());
+    outputString.append(std::to_string(charge));
     outputString.append("% ");
-    outputString.append(""); // Battery icon.
+    outputString.append(batteryIcon(charge));
 
     return outputString;
 }

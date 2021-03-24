@@ -14,7 +14,8 @@ public:
 
 private:
     static std::string batteryStatus();
-    static std::string batteryCharge();
+    static int batteryCharge();
+    static std::string batteryIcon(int charge);
 };
 
 #endif //BATTERY_H

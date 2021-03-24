@@ -33,7 +33,7 @@ std::string Keyboard::getOutput()
     }
 
     if (outputString.length() > 0) {
-        outputString.append("\uF11C\""); // Keyboard icon.
+        outputString.append("\uF11C"); // Keyboard icon.
     }
 
     return outputString;
