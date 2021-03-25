@@ -63,7 +63,6 @@ class Spotify : public ModuleInterface
 {
 public:
     Spotify();
-    ~Spotify() = default;
 
     std::string getOutput() final;
 

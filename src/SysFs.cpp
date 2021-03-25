@@ -2,7 +2,7 @@
 
 #include "SysFs.h"
 
-std::string loadStringFromSysFs(const char* fileName)
+std::string loadStringFromSysFs(const std::string &fileName)
 {
     std::string value;
     std::ifstream file(fileName);
@@ -12,7 +12,7 @@ std::string loadStringFromSysFs(const char* fileName)
     return value;
 }
 
-int loadIntFromSysFs(const char* fileName)
+int loadIntFromSysFs(const std::string &fileName)
 {
     return std::stoi(loadStringFromSysFs(fileName));
 }

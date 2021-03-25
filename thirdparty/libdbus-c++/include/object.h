@@ -25,6 +25,7 @@
 
 #include <dbus/dbus.h>
 #include <string>
+#include <utility>
 
 #include "connection.h"
 #include "message.h"
@@ -35,26 +36,19 @@ namespace DBus
 class Object
 {
 public:
-    Object(const char* path, const char *service)
-        : _path(path), _service(service ? service : "")
+    Object(std::string path, std::string service)
+        : _path(std::move(path)), _service(std::move(service))
     {
         _conn = new Connection(DBUS_BUS_SESSION);
     };
 
-    virtual ~Object() = default;
-
-    Message invoke_method(CallMessage &call)
+    Message invoke_method(CallMessage &call) const
     {
-        call.path(path().c_str());
+        call.path(_path);
+        call.destination(_service);
 
-        call.destination(service().c_str());
-
-        return conn()->send_blocking(call);
+        return _conn->send_blocking(call);
     };
-
-    inline const std::string &path() const { return _path; };
-    inline const std::string &service() const { return _service; };
-    inline Connection* conn() { return _conn; };
 
 private:
     Connection*	_conn;

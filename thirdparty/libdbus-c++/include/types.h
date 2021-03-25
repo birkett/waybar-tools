@@ -32,8 +32,6 @@
 namespace DBus
 {
 
-class Invalid {};
-
 class Variant
 {
 public:
@@ -50,30 +48,23 @@ public:
     }
 
     template <typename T>
-    operator T() const;
+    inline operator T() const
+    {
+        T cast;
+        DBus::MessageIter ri = _msg.reader();
+        ri >> cast;
+
+        return cast;
+    }
 
 private:
     Message _msg;
-};
-
-template <typename T1, typename T2 = Invalid, typename T3 = Invalid, typename T4 = Invalid>
-struct Struct
-{
-    T1 _1;
-    T2 _2;
-    T3 _3;
-    T4 _4;
 };
 
 inline DBus::MessageIter &operator << (DBus::MessageIter &iter, const std::string &val)
 {
     iter.append_string(val.c_str());
 
-    return iter;
-}
-
-inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, DBus::Invalid &)
-{
     return iter;
 }
 
@@ -84,7 +75,19 @@ inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, std::string &val
     return ++iter;
 }
 
-extern DBus::MessageIter &operator >> (DBus::MessageIter &iter, DBus::Variant &val);
+inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, DBus::Variant &val)
+{
+    if (iter.type() != DBUS_TYPE_VARIANT) {
+        throw ErrorInvalidArgs("variant type expected");
+    }
+
+    MessageIter vit = iter.recurse();
+    MessageIter mit = val.writer();
+
+    vit.copy_data(mit);
+
+    return ++iter;
+}
 
 template<typename K, typename V>
 inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, std::map<K, V>& val)
@@ -109,26 +112,6 @@ inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, std::map<K, V>& 
     }
 
     return ++iter;
-}
-
-template <typename T1, typename T2, typename T3, typename T4>
-inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, DBus::Struct<T1, T2, T3, T4>& val)
-{
-    DBus::MessageIter sit = iter.recurse();
-
-    sit >> val._1 >> val._2 >> val._3 >> val._4;
-
-    return ++iter;
-}
-
-template <typename T>
-inline DBus::Variant::operator T() const
-{
-    T cast;
-    DBus::MessageIter ri = _msg.reader();
-    ri >> cast;
-
-    return cast;
 }
 
 }

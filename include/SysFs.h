@@ -3,8 +3,8 @@
 
 #include <string>
 
-std::string loadStringFromSysFs(const char* fileName);
+std::string loadStringFromSysFs(const std::string &fileName);
 
-int loadIntFromSysFs(const char* fileName);
+int loadIntFromSysFs(const std::string &fileName);
 
 #endif //SYSFS_H

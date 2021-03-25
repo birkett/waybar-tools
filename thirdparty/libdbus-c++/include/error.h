@@ -39,10 +39,10 @@ public:
         dbus_error_init(&error);
     }
 
-    InternalError(const InternalError &ie)
+    InternalError(InternalError &ie)
     {
         dbus_error_init(&error);
-        dbus_move_error(const_cast<DBusError *>(&(ie.error)), &error);
+        dbus_move_error(&ie.error, &error);
     }
 
     ~InternalError()
@@ -54,11 +54,6 @@ public:
     {
         return &error;
     }
-
-    operator bool()
-    {
-        return dbus_error_is_set(&error);
-    }
 };
 
 class Error : public std::exception
@@ -66,12 +61,10 @@ class Error : public std::exception
 public:
     explicit Error(InternalError &i) : _int(new InternalError(i)) {}
 
-    Error(const char *name, const char *message) : _int(new InternalError)
+    Error(const std::string &name, const std::string &message) : _int(new InternalError)
     {
-        dbus_set_error_const(&(_int->error), name, message);
+        dbus_set_error_const(&(_int->error), name.c_str(), message.c_str());
     }
-
-    ~Error() noexcept override = default;
 
     const char *what() const noexcept override
     {
@@ -90,13 +83,13 @@ private:
 class ErrorNoMemory : public Error
 {
 public:
-    explicit ErrorNoMemory(const char *message) : Error("org.freedesktop.DBus.Error.NoMemory", message) {}
+    explicit ErrorNoMemory(const std::string &message) : Error("org.freedesktop.DBus.Error.NoMemory", message) {}
 };
 
 class ErrorInvalidArgs : public Error
 {
 public:
-    explicit ErrorInvalidArgs(const char *message) : Error("org.freedesktop.DBus.Error.InvalidArgs", message) {}
+    explicit ErrorInvalidArgs(const std::string &message) : Error("org.freedesktop.DBus.Error.InvalidArgs", message) {}
 };
 
 }

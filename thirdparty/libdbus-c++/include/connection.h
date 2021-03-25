@@ -32,31 +32,25 @@ namespace DBus
 class Connection
 {
 public:
-    Connection() = default;
-
     explicit Connection(DBusBusType type)
     {
         InternalError e;
 
         conn = dbus_bus_get_private(type, e);
 
-        if (e) {
+        if (e.error.message) {
             throw Error(e);
         }
 
         dbus_connection_set_exit_on_disconnect(conn, false);
     }
 
-    virtual ~Connection() = default;
-
-    Message send_blocking(Message &msg)
+    Message send_blocking(Message &msg) const
     {
-        DBusMessage *reply;
         InternalError e;
+        DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg.msg, -1, e);
 
-        reply = dbus_connection_send_with_reply_and_block(conn, msg.msg, -1, e);
-
-        if (e) {
+        if (e.error.message) {
             throw Error(e);
         }
 

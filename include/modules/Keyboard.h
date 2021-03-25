@@ -8,9 +8,6 @@
 class Keyboard : public ModuleInterface
 {
 public:
-    Keyboard() = default;
-    ~Keyboard() = default;
-
     std::string getOutput() final;
 
 private:

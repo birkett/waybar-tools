@@ -8,9 +8,6 @@
 class Battery : public ModuleInterface
 {
 public:
-    Battery() = default;
-    ~Battery() = default;
-
     std::string getOutput() final;
 
 private:

@@ -25,6 +25,7 @@
 
 #include <cstdlib>
 #include <dbus/dbus.h>
+#include <string>
 
 #include "error.h"
 
@@ -38,14 +39,12 @@ class Connection;
 class MessageIter
 {
 public:
-    MessageIter() = default;
-
-    int type()
+    int type() const
     {
         return dbus_message_iter_get_arg_type((DBusMessageIter *)&_iter);
     }
 
-    bool at_end()
+    bool at_end() const
     {
         return type() == DBUS_TYPE_INVALID;
     }
@@ -70,7 +69,7 @@ public:
         return append_basic(DBUS_TYPE_STRING, &chars);
     }
 
-    const char *get_string()
+    std::string get_string()
     {
         char *chars;
         get_basic(DBUS_TYPE_STRING, &chars);
@@ -78,7 +77,7 @@ public:
         return chars;
     }
 
-    MessageIter recurse()
+    MessageIter recurse() const
     {
         MessageIter iter(msg());
         dbus_message_iter_recurse((DBusMessageIter *)&_iter, (DBusMessageIter *) & (iter._iter));
@@ -91,17 +90,17 @@ public:
         return dbus_message_iter_get_signature((DBusMessageIter *)&_iter);
     }
 
-    bool is_array()
+    bool is_array() const
     {
         return dbus_message_iter_get_arg_type((DBusMessageIter *)&_iter) == DBUS_TYPE_ARRAY;
     }
 
-    bool is_dict()
+    bool is_dict() const
     {
         return is_array() && dbus_message_iter_get_element_type((DBusMessageIter *)_iter) == DBUS_TYPE_DICT_ENTRY;
     }
 
-    void close_container(MessageIter &container)
+    void close_container(MessageIter &container) const
     {
         dbus_message_iter_close_container((DBusMessageIter *)&_iter, (DBusMessageIter *) & (container._iter));
     }
@@ -144,12 +143,12 @@ public:
 private:
     explicit MessageIter(Message &msg) : _msg(&msg) {}
 
-    bool append_basic(int type_id, void *value)
+    bool append_basic(int type_id, void *value) const
     {
         return dbus_message_iter_append_basic((DBusMessageIter *)&_iter, type_id, value);
     }
 
-    void get_basic(int type_id, void *ptr)
+    void get_basic(int type_id, void *ptr) const
     {
         if (type() != type_id) {
             throw ErrorInvalidArgs("type mismatch");
@@ -189,12 +188,9 @@ private:
 class Message
 {
 public:
-    Message() = default;
-    ~Message() = default;
-
-    bool destination(const char *s) const
+    bool destination(const std::string &s) const
     {
-        return dbus_message_set_destination(msg, s);
+        return dbus_message_set_destination(msg, s.c_str());
     }
 
     MessageIter writer()
@@ -224,19 +220,19 @@ public:
         msg = dbus_message_new(DBUS_MESSAGE_TYPE_METHOD_CALL);
     }
 
-    bool interface(const char *i)
+    bool interface(const std::string &i) const
     {
-        return dbus_message_set_interface(msg, i);
+        return dbus_message_set_interface(msg, i.c_str());
     }
 
-    bool member(const char *m)
+    bool member(const std::string &m) const
     {
-        return dbus_message_set_member(msg, m);
+        return dbus_message_set_member(msg, m.c_str());
     }
 
-    bool path(const char *p)
+    bool path(const std::string &p) const
     {
-        return dbus_message_set_path(msg, p);
+        return dbus_message_set_path(msg, p.c_str());
     }
 };
 
