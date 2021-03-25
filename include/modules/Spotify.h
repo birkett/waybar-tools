@@ -2,6 +2,7 @@
 #define SPOTIFY_H
 
 #include <string>
+
 #include "ModuleInterface.h"
 #include "SpotifyDBusInterface.h"
 
@@ -69,7 +70,6 @@ public:
 private:
     static std::string getIcons(const SpotifyMeta &meta);
 
-    DBus::BusDispatcher dispatcher;
     SpotifyDBusInterface* spotify;
 };
 

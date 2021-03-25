@@ -20,27 +20,13 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-
-
 #ifndef __DBUSXX_DBUS_H
 #define __DBUSXX_DBUS_H
 
-#include "types.h"
-#include "interface.h"
-#include "object.h"
-#include "property.h"
 #include "connection.h"
-#include "server.h"
 #include "error.h"
 #include "message.h"
-#include "debug.h"
-#include "pendingcall.h"
-#include "server.h"
-#include "util.h"
-#include "dispatcher.h"
-#include "eventloop.h"
-#include "eventloop-integration.h"
-#include "introspection.h"
-#include "pipe.h"
+#include "object.h"
+#include "types.h"
 
-#endif//__DBUSXX_DBUS_H
+#endif //__DBUSXX_DBUS_H

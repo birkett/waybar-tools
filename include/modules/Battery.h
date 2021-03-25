@@ -2,6 +2,7 @@
 #define BATTERY_H
 
 #include <string>
+
 #include "ModuleInterface.h"
 
 class Battery : public ModuleInterface

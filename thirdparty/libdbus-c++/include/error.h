@@ -20,267 +20,85 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-
-
 #ifndef __DBUSXX_ERROR_H
 #define __DBUSXX_ERROR_H
 
-#include "api.h"
-#include "util.h"
-
+#include <dbus/dbus.h>
 #include <exception>
 
 namespace DBus
 {
 
-class Message;
-class InternalError;
-
-class DXXAPI Error : public std::exception
+class InternalError
 {
 public:
+    DBusError error {};
 
-  Error();
+    InternalError()
+    {
+        dbus_error_init(&error);
+    }
 
-  Error(InternalError &);
+    InternalError(const InternalError &ie)
+    {
+        dbus_error_init(&error);
+        dbus_move_error(const_cast<DBusError *>(&(ie.error)), &error);
+    }
 
-  Error(const char *name, const char *message);
+    ~InternalError()
+    {
+        dbus_error_free(&error);
+    }
 
-  Error(Message &);
+    operator DBusError *()
+    {
+        return &error;
+    }
 
-  ~Error() throw();
+    operator bool()
+    {
+        return dbus_error_is_set(&error);
+    }
+};
 
-  const char *what() const throw();
+class Error : public std::exception
+{
+public:
+    explicit Error(InternalError &i) : _int(new InternalError(i)) {}
 
-  const char *name() const;
+    Error(const char *name, const char *message) : _int(new InternalError)
+    {
+        dbus_set_error_const(&(_int->error), name, message);
+    }
 
-  const char *message() const;
+    ~Error() noexcept override = default;
 
-  void set(const char *name, const char *message);
-  // parameters MUST be static strings
+    const char *what() const noexcept override
+    {
+        return _int->error.message;
+    }
 
-  bool is_set() const;
-
-  operator bool() const
-  {
-    return is_set();
-  }
+    const char *message() const
+    {
+        return _int->error.message;
+    }
 
 private:
-
-  RefPtrI<InternalError> _int;
+    InternalError* _int;
 };
 
-struct DXXAPI ErrorFailed : public Error
+class ErrorNoMemory : public Error
 {
-  ErrorFailed(const char *message)
-    : Error("org.freedesktop.DBus.Error.Failed", message)
-  {}
+public:
+    explicit ErrorNoMemory(const char *message) : Error("org.freedesktop.DBus.Error.NoMemory", message) {}
 };
 
-struct DXXAPI ErrorNoMemory : public Error
+class ErrorInvalidArgs : public Error
 {
-  ErrorNoMemory(const char *message)
-    : Error("org.freedesktop.DBus.Error.NoMemory", message)
-  {}
+public:
+    explicit ErrorInvalidArgs(const char *message) : Error("org.freedesktop.DBus.Error.InvalidArgs", message) {}
 };
 
-struct DXXAPI ErrorServiceUnknown : public Error
-{
-  ErrorServiceUnknown(const char *message)
-    : Error("org.freedesktop.DBus.Error.ServiceUnknown", message)
-  {}
-};
+}
 
-struct DXXAPI ErrorNameHasNoOwner : public Error
-{
-  ErrorNameHasNoOwner(const char *message)
-    : Error("org.freedesktop.DBus.Error.NameHasNoOwner", message)
-  {}
-};
-
-struct DXXAPI ErrorNoReply : public Error
-{
-  ErrorNoReply(const char *message)
-    : Error("org.freedesktop.DBus.Error.NoReply", message)
-  {}
-};
-
-struct DXXAPI ErrorIOError : public Error
-{
-  ErrorIOError(const char *message)
-    : Error("org.freedesktop.DBus.Error.IOError", message)
-  {}
-};
-
-struct DXXAPI ErrorBadAddress : public Error
-{
-  ErrorBadAddress(const char *message)
-    : Error("org.freedesktop.DBus.Error.BadAddress", message)
-  {}
-};
-
-struct DXXAPI ErrorNotSupported : public Error
-{
-  ErrorNotSupported(const char *message)
-    : Error("org.freedesktop.DBus.Error.NotSupported", message)
-  {}
-};
-
-struct DXXAPI ErrorLimitsExceeded : public Error
-{
-  ErrorLimitsExceeded(const char *message)
-    : Error("org.freedesktop.DBus.Error.LimitsExceeded", message)
-  {}
-};
-
-struct DXXAPI ErrorAccessDenied : public Error
-{
-  ErrorAccessDenied(const char *message)
-    : Error("org.freedesktop.DBus.Error.AccessDenied", message)
-  {}
-};
-
-struct DXXAPI ErrorAuthFailed : public Error
-{
-  ErrorAuthFailed(const char *message)
-    : Error("org.freedesktop.DBus.Error.AuthFailed", message)
-  {}
-};
-
-struct DXXAPI ErrorNoServer : public Error
-{
-  ErrorNoServer(const char *message)
-    : Error("org.freedesktop.DBus.Error.NoServer", message)
-  {}
-};
-
-struct DXXAPI ErrorTimeout : public Error
-{
-  ErrorTimeout(const char *message)
-    : Error("org.freedesktop.DBus.Error.Timeout", message)
-  {}
-};
-
-struct DXXAPI ErrorNoNetwork : public Error
-{
-  ErrorNoNetwork(const char *message)
-    : Error("org.freedesktop.DBus.Error.NoNetwork", message)
-  {}
-};
-
-struct DXXAPI ErrorAddressInUse : public Error
-{
-  ErrorAddressInUse(const char *message)
-    : Error("org.freedesktop.DBus.Error.AddressInUse", message)
-  {}
-};
-
-struct DXXAPI ErrorDisconnected : public Error
-{
-  ErrorDisconnected(const char *message)
-    : Error("org.freedesktop.DBus.Error.Disconnected", message)
-  {}
-};
-
-struct DXXAPI ErrorInvalidArgs : public Error
-{
-  ErrorInvalidArgs(const char *message)
-    : Error("org.freedesktop.DBus.Error.InvalidArgs", message)
-  {}
-};
-
-struct DXXAPI ErrorFileNotFound : public Error
-{
-  ErrorFileNotFound(const char *message)
-    : Error("org.freedesktop.DBus.Error.FileNotFound", message)
-  {}
-};
-
-struct DXXAPI ErrorUnknownMethod : public Error
-{
-  ErrorUnknownMethod(const char *message)
-    : Error("org.freedesktop.DBus.Error.UnknownMethod", message)
-  {}
-};
-
-struct DXXAPI ErrorTimedOut : public Error
-{
-  ErrorTimedOut(const char *message)
-    : Error("org.freedesktop.DBus.Error.TimedOut", message)
-  {}
-};
-
-struct DXXAPI ErrorMatchRuleNotFound : public Error
-{
-  ErrorMatchRuleNotFound(const char *message)
-    : Error("org.freedesktop.DBus.Error.MatchRuleNotFound", message)
-  {}
-};
-
-struct DXXAPI ErrorMatchRuleInvalid : public Error
-{
-  ErrorMatchRuleInvalid(const char *message)
-    : Error("org.freedesktop.DBus.Error.MatchRuleInvalid", message)
-  {}
-};
-
-struct DXXAPI ErrorSpawnExecFailed : public Error
-{
-  ErrorSpawnExecFailed(const char *message)
-    : Error("org.freedesktop.DBus.Error.Spawn.ExecFailed", message)
-  {}
-};
-
-struct DXXAPI ErrorSpawnForkFailed : public Error
-{
-  ErrorSpawnForkFailed(const char *message)
-    : Error("org.freedesktop.DBus.Error.Spawn.ForkFailed", message)
-  {}
-};
-
-struct DXXAPI ErrorSpawnChildExited : public Error
-{
-  ErrorSpawnChildExited(const char *message)
-    : Error("org.freedesktop.DBus.Error.Spawn.ChildExited", message)
-  {}
-};
-
-struct DXXAPI ErrorSpawnChildSignaled : public Error
-{
-  ErrorSpawnChildSignaled(const char *message)
-    : Error("org.freedesktop.DBus.Error.Spawn.ChildSignaled", message)
-  {}
-};
-
-struct DXXAPI ErrorSpawnFailed : public Error
-{
-  ErrorSpawnFailed(const char *message)
-    : Error("org.freedesktop.DBus.Error.Spawn.Failed", message)
-  {}
-};
-
-struct DXXAPI ErrorInvalidSignature : public Error
-{
-  ErrorInvalidSignature(const char *message)
-    : Error("org.freedesktop.DBus.Error.InvalidSignature", message)
-  {}
-};
-
-struct DXXAPI ErrorUnixProcessIdUnknown : public Error
-{
-  ErrorUnixProcessIdUnknown(const char *message)
-    : Error("org.freedesktop.DBus.Error.UnixProcessIdUnknown", message)
-  {}
-};
-
-struct DXXAPI ErrorSELinuxSecurityContextUnknown : public Error
-{
-  ErrorSELinuxSecurityContextUnknown(const char *message)
-    : Error("org.freedesktop.DBus.Error.SELinuxSecurityContextUnknown", message)
-  {}
-};
-
-} /* namespace DBus */
-
-#endif//__DBUSXX_ERROR_H
+#endif //__DBUSXX_ERROR_H

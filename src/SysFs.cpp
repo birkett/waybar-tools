@@ -1,4 +1,5 @@
 #include <fstream>
+
 #include "SysFs.h"
 
 std::string loadStringFromSysFs(const char* fileName)

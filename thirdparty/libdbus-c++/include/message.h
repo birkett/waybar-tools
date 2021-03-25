@@ -20,290 +20,226 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-
-
 #ifndef __DBUSXX_MESSAGE_H
 #define __DBUSXX_MESSAGE_H
 
-#include <string>
-#include <map>
+#include <cstdlib>
+#include <dbus/dbus.h>
 
-#include "api.h"
-#include "util.h"
+#include "error.h"
 
 namespace DBus
 {
 
 class Message;
-class ErrorMessage;
-class SignalMessage;
-class ReturnMessage;
 class Error;
 class Connection;
 
-class DXXAPI MessageIter
+class MessageIter
 {
 public:
+    MessageIter() = default;
 
-  MessageIter() {}
+    int type()
+    {
+        return dbus_message_iter_get_arg_type((DBusMessageIter *)&_iter);
+    }
 
-  int type();
+    bool at_end()
+    {
+        return type() == DBUS_TYPE_INVALID;
+    }
 
-  bool at_end();
+    MessageIter &operator ++()
+    {
+        dbus_message_iter_next((DBusMessageIter *)&_iter);
 
-  bool has_next();
+        return (*this);
+    }
 
-  MessageIter &operator ++();
+    MessageIter operator ++(int)
+    {
+        MessageIter copy(*this);
+        ++(*this);
 
-  MessageIter operator ++(int);
+        return copy;
+    }
 
-  bool append_byte(unsigned char byte);
+    bool append_string(const char *chars)
+    {
+        return append_basic(DBUS_TYPE_STRING, &chars);
+    }
 
-  unsigned char get_byte();
+    const char *get_string()
+    {
+        char *chars;
+        get_basic(DBUS_TYPE_STRING, &chars);
 
-  bool append_bool(bool b);
+        return chars;
+    }
 
-  bool get_bool();
+    MessageIter recurse()
+    {
+        MessageIter iter(msg());
+        dbus_message_iter_recurse((DBusMessageIter *)&_iter, (DBusMessageIter *) & (iter._iter));
 
-  bool append_int16(signed short i);
+        return iter;
+    }
 
-  signed short get_int16();
+    char *signature() const
+    {
+        return dbus_message_iter_get_signature((DBusMessageIter *)&_iter);
+    }
 
-  bool append_uint16(unsigned short u);
+    bool is_array()
+    {
+        return dbus_message_iter_get_arg_type((DBusMessageIter *)&_iter) == DBUS_TYPE_ARRAY;
+    }
 
-  unsigned short get_uint16();
+    bool is_dict()
+    {
+        return is_array() && dbus_message_iter_get_element_type((DBusMessageIter *)_iter) == DBUS_TYPE_DICT_ENTRY;
+    }
 
-  bool append_int32(signed int i);
+    void close_container(MessageIter &container)
+    {
+        dbus_message_iter_close_container((DBusMessageIter *)&_iter, (DBusMessageIter *) & (container._iter));
+    }
 
-  signed int get_int32();
+    void copy_data(MessageIter &to)
+    {
+        for (MessageIter &from = *this; !from.at_end(); ++from) {
+            if (is_basic_type(from.type())) {
+                unsigned char value[8];
+                from.get_basic(from.type(), &value);
+                to.append_basic(from.type(), &value);
+            } else {
+                MessageIter from_container = from.recurse();
+                char *sig = from_container.signature();
 
-  bool append_uint32(unsigned int u);
+                MessageIter to_container(to.msg());
+                dbus_bool_t ret = dbus_message_iter_open_container(
+                        (DBusMessageIter *) & (to._iter),
+                        from.type(),
+                        (from.type() == DBUS_TYPE_VARIANT || from.type() == DBUS_TYPE_ARRAY) ? sig : nullptr,
+                        (DBusMessageIter *) & (to_container._iter)
+                );
 
-  unsigned int get_uint32();
+                if (!ret) {
+                    throw ErrorNoMemory("Unable to append container");
+                }
 
-  bool append_int64(signed long long i);
+                from_container.copy_data(to_container);
+                to.close_container(to_container);
+                free(sig);
+            }
+        }
+    }
 
-  signed long long get_int64();
-
-  bool append_uint64(unsigned long long i);
-
-  unsigned long long get_uint64();
-
-  bool append_double(double d);
-
-  double get_double();
-
-  bool append_string(const char *chars);
-
-  const char *get_string();
-
-  bool append_path(const char *chars);
-
-  const char *get_path();
-
-  bool append_signature(const char *chars);
-
-  const char *get_signature();
-
-  char *signature() const; //returned string must be manually free()'d
-
-  MessageIter recurse();
-
-  bool append_array(char type, const void *ptr, size_t length);
-
-  int array_type();
-
-  int get_array(void *ptr);
-
-  bool is_array();
-
-  bool is_dict();
-
-  MessageIter new_array(const char *sig);
-
-  MessageIter new_variant(const char *sig);
-
-  MessageIter new_struct();
-
-  MessageIter new_dict_entry();
-
-  void close_container(MessageIter &container);
-
-  void copy_data(MessageIter &to);
-
-  Message &msg() const
-  {
-    return *_msg;
-  }
+    Message &msg() const
+    {
+        return *_msg;
+    }
 
 private:
+    explicit MessageIter(Message &msg) : _msg(&msg) {}
 
-  DXXAPILOCAL MessageIter(Message &msg) : _msg(&msg) {}
+    bool append_basic(int type_id, void *value)
+    {
+        return dbus_message_iter_append_basic((DBusMessageIter *)&_iter, type_id, value);
+    }
 
-  DXXAPILOCAL bool append_basic(int type_id, void *value);
+    void get_basic(int type_id, void *ptr)
+    {
+        if (type() != type_id) {
+            throw ErrorInvalidArgs("type mismatch");
+        }
 
-  DXXAPILOCAL void get_basic(int type_id, void *ptr);
+        dbus_message_iter_get_basic((DBusMessageIter *)_iter, ptr);
+    }
 
-private:
+    static bool is_basic_type(int typecode)
+    {
+        switch (typecode)
+        {
+            case 'y':
+            case 'b':
+            case 'n':
+            case 'q':
+            case 'i':
+            case 'u':
+            case 'x':
+            case 't':
+            case 'd':
+            case 's':
+            case 'o':
+            case 'g':
+                return true;
+            default:
+                return false;
+        }
+    }
 
-  /* I'm sorry, but don't want to include dbus.h in the public api
-   */
-  unsigned char _iter[sizeof(void *) * 3 + sizeof(int) * 11];
+    unsigned char _iter[sizeof(void *) * 3 + sizeof(int) * 11] {};
+    Message *_msg {};
 
-  Message *_msg;
-
-  friend class Message;
+    friend class Message;
 };
 
-class DXXAPI Message
+class Message
 {
 public:
+    Message() = default;
+    ~Message() = default;
 
-  struct Private;
+    bool destination(const char *s) const
+    {
+        return dbus_message_set_destination(msg, s);
+    }
 
-  Message(Private *, bool incref = true);
+    MessageIter writer()
+    {
+        MessageIter iter(*this);
+        dbus_message_iter_init_append(msg, (DBusMessageIter *) & (iter._iter));
 
-  Message(const Message &m);
+        return iter;
+    }
 
-  ~Message();
+    MessageIter reader() const
+    {
+        MessageIter iter(const_cast<Message &>(*this));
+        dbus_message_iter_init(msg, (DBusMessageIter *) & (iter._iter));
 
-  Message &operator = (const Message &m);
+        return iter;
+    }
 
-  Message copy();
-
-  int type() const;
-
-  int serial() const;
-
-  int reply_serial() const;
-
-  bool reply_serial(int);
-
-  const char *sender() const;
-
-  bool sender(const char *s);
-
-  const char *destination() const;
-
-  bool destination(const char *s);
-
-  bool is_error() const;
-
-  bool is_signal(const char *interface, const char *member) const;
-
-  MessageIter reader() const;
-
-  MessageIter writer();
-
-  bool append(int first_type, ...);
-
-  void terminate();
-
-protected:
-
-  Message();
-
-protected:
-
-  RefPtrI<Private> _pvt;
-
-  /*	classes who need to read `_pvt` directly
-  */
-  friend class ErrorMessage;
-  friend class ReturnMessage;
-  friend class MessageIter;
-  friend class Error;
-  friend class Connection;
+    DBusMessage* msg{};
 };
 
-/*
-*/
-
-class DXXAPI ErrorMessage : public Message
+class CallMessage : public Message
 {
 public:
+    CallMessage()
+    {
+        msg = dbus_message_new(DBUS_MESSAGE_TYPE_METHOD_CALL);
+    }
 
-  ErrorMessage();
+    bool interface(const char *i)
+    {
+        return dbus_message_set_interface(msg, i);
+    }
 
-  ErrorMessage(const Message &, const char *name, const char *message);
+    bool member(const char *m)
+    {
+        return dbus_message_set_member(msg, m);
+    }
 
-  const char *name() const;
-
-  bool name(const char *n);
-
-  bool operator == (const ErrorMessage &) const;
+    bool path(const char *p)
+    {
+        return dbus_message_set_path(msg, p);
+    }
 };
 
-/*
-*/
+}
 
-class DXXAPI SignalMessage : public Message
-{
-public:
-
-  SignalMessage(const char *name);
-
-  SignalMessage(const char *path, const char *interface, const char *name);
-
-  const char *interface() const;
-
-  bool interface(const char *i);
-
-  const char *member() const;
-
-  bool member(const char *m);
-
-  const char *path() const;
-
-  char **path_split() const;
-
-  bool path(const char *p);
-
-  bool operator == (const SignalMessage &) const;
-};
-
-/*
-*/
-
-class DXXAPI CallMessage : public Message
-{
-public:
-
-  CallMessage();
-
-  CallMessage(const char *dest, const char *path, const char *iface, const char *method);
-
-  const char *interface() const;
-
-  bool interface(const char *i);
-
-  const char *member() const;
-
-  bool member(const char *m);
-
-  const char *path() const;
-
-  char **path_split() const;
-
-  bool path(const char *p);
-
-  const char *signature() const;
-
-  bool operator == (const CallMessage &) const;
-};
-
-/*
-*/
-
-class DXXAPI ReturnMessage : public Message
-{
-public:
-
-  ReturnMessage(const CallMessage &callee);
-
-  const char *signature() const;
-};
-
-} /* namespace DBus */
-
-#endif//__DBUSXX_MESSAGE_H
+#endif //__DBUSXX_MESSAGE_H

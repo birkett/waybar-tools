@@ -1,16 +1,16 @@
 #include "SpotifyDBusInterface.h"
 
-std::string Player_proxy::PlaybackStatus()
+std::string SpotifyDBusInterface::PlaybackStatus()
 {
     return this->getProperty("PlaybackStatus");
 }
 
-std::map<std::string, DBus::Variant> Player_proxy::Metadata()
+std::map<std::string, DBus::Variant> SpotifyDBusInterface::Metadata()
 {
     return this->getProperty("Metadata");
 }
 
-DBus::Variant Player_proxy::getProperty(const char *propertyName)
+DBus::Variant SpotifyDBusInterface::getProperty(const char *propertyName)
 {
     DBus::CallMessage call;
     call.member("Get");
@@ -18,7 +18,7 @@ DBus::Variant Player_proxy::getProperty(const char *propertyName)
 
     DBus::MessageIter wi = call.writer();
 
-    wi << std::string(PLAYER_INTERFACE_NAME) << std::string(propertyName);
+    wi << std::string("org.mpris.MediaPlayer2.Player") << std::string(propertyName);
 
     DBus::Message ret = this->invoke_method(call);
 
