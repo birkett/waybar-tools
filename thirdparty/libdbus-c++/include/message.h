@@ -125,7 +125,7 @@ public:
                 );
 
                 if (!ret) {
-                    throw ErrorNoMemory("Unable to append container");
+                    throw Error("org.freedesktop.DBus.Error.NoMemory", "Unable to append container");
                 }
 
                 from_container.copy_data(to_container);
@@ -151,7 +151,7 @@ private:
     void get_basic(int type_id, void *ptr) const
     {
         if (type() != type_id) {
-            throw ErrorInvalidArgs("type mismatch");
+            throw Error("org.freedesktop.DBus.Error.InvalidArgs", "type mismatch");
         }
 
         dbus_message_iter_get_basic((DBusMessageIter *)_iter, ptr);

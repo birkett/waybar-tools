@@ -78,7 +78,7 @@ inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, std::string &val
 inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, DBus::Variant &val)
 {
     if (iter.type() != DBUS_TYPE_VARIANT) {
-        throw ErrorInvalidArgs("variant type expected");
+        throw Error("org.freedesktop.DBus.Error.InvalidArgs", "variant type expected");
     }
 
     MessageIter vit = iter.recurse();
@@ -93,7 +93,7 @@ template<typename K, typename V>
 inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, std::map<K, V>& val)
 {
     if (!iter.is_dict()) {
-        throw DBus::ErrorInvalidArgs("dictionary value expected");
+        throw DBus::Error("org.freedesktop.DBus.Error.InvalidArgs", "dictionary value expected");
     }
 
     DBus::MessageIter mit = iter.recurse();

@@ -25,71 +25,47 @@
 
 #include <dbus/dbus.h>
 #include <exception>
+#include <string>
 
 namespace DBus
 {
 
-class InternalError
-{
-public:
-    DBusError error {};
-
-    InternalError()
-    {
-        dbus_error_init(&error);
-    }
-
-    InternalError(InternalError &ie)
-    {
-        dbus_error_init(&error);
-        dbus_move_error(&ie.error, &error);
-    }
-
-    ~InternalError()
-    {
-        dbus_error_free(&error);
-    }
-
-    operator DBusError *()
-    {
-        return &error;
-    }
-};
-
 class Error : public std::exception
 {
 public:
-    explicit Error(InternalError &i) : _int(new InternalError(i)) {}
-
-    Error(const std::string &name, const std::string &message) : _int(new InternalError)
+    Error()
     {
-        dbus_set_error_const(&(_int->error), name.c_str(), message.c_str());
+        dbus_error_init(&error);
+    };
+
+    Error(const std::string &name, const std::string &message)
+    {
+        dbus_error_init(&error);
+        dbus_set_error_const(&(error), name.c_str(), message.c_str());
+    }
+
+    bool hasError()
+    {
+        return dbus_error_is_set(&error);
+    }
+
+    explicit operator DBusError *()
+    {
+        return &error;
     }
 
     const char *what() const noexcept override
     {
-        return _int->error.message;
+        return error.message;
     }
 
     const char *message() const
     {
-        return _int->error.message;
+        return error.message;
     }
 
 private:
-    InternalError* _int;
-};
-
-class ErrorNoMemory : public Error
-{
-public:
-    explicit ErrorNoMemory(const std::string &message) : Error("org.freedesktop.DBus.Error.NoMemory", message) {}
-};
-
-class ErrorInvalidArgs : public Error
-{
-public:
-    explicit ErrorInvalidArgs(const std::string &message) : Error("org.freedesktop.DBus.Error.InvalidArgs", message) {}
+    DBusError error {};
 };
 
 }

@@ -34,11 +34,11 @@ class Connection
 public:
     explicit Connection(DBusBusType type)
     {
-        InternalError e;
+        Error e;
 
-        conn = dbus_bus_get_private(type, e);
+        conn = dbus_bus_get_private(type, (DBusError*)e);
 
-        if (e.error.message) {
+        if (e.hasError()) {
             throw Error(e);
         }
 
@@ -47,10 +47,10 @@ public:
 
     Message send_blocking(Message &msg) const
     {
-        InternalError e;
-        DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg.msg, -1, e);
+        Error e;
+        DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg.msg, -1, (DBusError*)e);
 
-        if (e.error.message) {
+        if (e.hasError()) {
             throw Error(e);
         }
 
