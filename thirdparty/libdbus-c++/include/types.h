@@ -20,8 +20,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef __DBUSXX_TYPES_H
-#define __DBUSXX_TYPES_H
+#ifndef TYPES_H
+#define TYPES_H
 
 #include <map>
 #include <string>
@@ -35,30 +35,30 @@ namespace DBus
 class Variant
 {
 public:
-    Variant() : _msg(CallMessage()) {}
+    Variant() : message(CallMessage()) {}
 
     MessageIter reader() const
     {
-        return _msg.reader();
+        return message.reader();
     }
 
     MessageIter writer()
     {
-        return _msg.writer();
+        return message.writer();
     }
 
     template <typename T>
-    inline operator T() const
+    inline explicit operator T() const
     {
         T cast;
-        DBus::MessageIter ri = _msg.reader();
+        DBus::MessageIter ri = message.reader();
         ri >> cast;
 
         return cast;
     }
 
 private:
-    Message _msg;
+    Message message;
 };
 
 inline DBus::MessageIter &operator << (DBus::MessageIter &iter, const std::string &val)
@@ -116,4 +116,4 @@ inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, std::map<K, V>& 
 
 }
 
-#endif //__DBUSXX_TYPES_H
+#endif //TYPES_H

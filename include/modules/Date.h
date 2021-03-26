@@ -9,7 +9,7 @@
 class Date : public ModuleInterface
 {
 public:
-    Date() { this->tt = 0; };
+    Date() : tt(0) {};
 
     std::string getOutput() final;
 

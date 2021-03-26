@@ -20,8 +20,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef __DBUSXX_CONNECTION_H
-#define __DBUSXX_CONNECTION_H
+#ifndef CONNECTION_H
+#define CONNECTION_H
 
 #include "message.h"
 #include "types.h"
@@ -32,11 +32,11 @@ namespace DBus
 class Connection
 {
 public:
-    explicit Connection(DBusBusType type)
+    explicit Connection()
     {
         Error e;
 
-        conn = dbus_bus_get_private(type, (DBusError*)e);
+        conn = dbus_bus_get_private(DBUS_BUS_SESSION, (DBusError*)e);
 
         if (e.hasError()) {
             throw Error(e);
@@ -45,19 +45,16 @@ public:
         dbus_connection_set_exit_on_disconnect(conn, false);
     }
 
-    Message send_blocking(Message &msg) const
+    Message sendBlocking(const Message &msg) const
     {
         Error e;
-        DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg.msg, -1, (DBusError*)e);
+        DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, &msg.msg(), -1, (DBusError*)e);
 
         if (e.hasError()) {
             throw Error(e);
         }
 
-        Message pvt;
-        pvt.msg = reply;
-
-        return pvt;
+        return Message(reply);
     }
 
 private:
@@ -66,4 +63,4 @@ private:
 
 }
 
-#endif//__DBUSXX_CONNECTION_H
+#endif //CONNECTION_H

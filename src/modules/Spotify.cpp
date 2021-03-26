@@ -1,11 +1,14 @@
 #include <dbus.h>
-#include <iostream>
+
+#ifdef DEBUG
+    #include <iostream>
+#endif
 
 #include "modules/Spotify.h"
 
 Spotify::Spotify()
 {
-    this->spotify = new SpotifyDBusInterface("/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.spotify");
+    this->spotify = new SpotifyDBusInterface();
 }
 
 std::string Spotify::getOutput()
@@ -31,8 +34,9 @@ std::string Spotify::getOutput()
             }
         }
     } catch (DBus::Error &error) {
+#ifdef DEBUG
         std::cerr << error.message() << std::endl;
-
+#endif
         return output;
     }
 

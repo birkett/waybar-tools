@@ -14,31 +14,38 @@ public:
     std::string album;
     std::string title;
 
-    bool isPlaying() const {
+    bool isPlaying() const
+    {
         return this->status == "Playing";
     }
 
-    bool isPaused() const {
+    bool isPaused() const
+    {
         return this->status == "Paused";
     }
 
-    bool isStopped() const {
+    bool isStopped() const
+    {
         return this->status == "Stopped";
     }
 
-    bool hasArtist() const {
+    bool hasArtist() const
+    {
         return this->artist.length() > 0;
     }
 
-    bool hasAlbum() const {
+    bool hasAlbum() const
+    {
         return this->album.length() > 0;
     }
 
-    bool hasTitle() const {
+    bool hasTitle() const
+    {
         return this->title.length() > 0;
     }
 
-    std::string toString() const {
+    std::string toString() const
+    {
         std::string output;
 
         if (this->hasArtist()) {

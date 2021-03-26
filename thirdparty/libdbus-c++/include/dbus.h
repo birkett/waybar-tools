@@ -20,13 +20,12 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef __DBUSXX_DBUS_H
-#define __DBUSXX_DBUS_H
+#ifndef DBUS_MAIN_H
+#define DBUS_MAIN_H
 
 #include "connection.h"
 #include "error.h"
 #include "message.h"
-#include "object.h"
 #include "types.h"
 
-#endif //__DBUSXX_DBUS_H
+#endif //DBUS_MAIN_H

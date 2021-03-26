@@ -20,8 +20,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef __DBUSXX_ERROR_H
-#define __DBUSXX_ERROR_H
+#ifndef ERROR_H
+#define ERROR_H
 
 #include <dbus/dbus.h>
 #include <exception>
@@ -70,4 +70,4 @@ private:
 
 }
 
-#endif //__DBUSXX_ERROR_H
+#endif //ERROR_H

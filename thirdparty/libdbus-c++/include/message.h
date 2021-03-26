@@ -20,8 +20,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef __DBUSXX_MESSAGE_H
-#define __DBUSXX_MESSAGE_H
+#ifndef MESSAGE_H
+#define MESSAGE_H
 
 #include <cstdlib>
 #include <dbus/dbus.h>
@@ -33,8 +33,6 @@ namespace DBus
 {
 
 class Message;
-class Error;
-class Connection;
 
 class MessageIter
 {
@@ -54,14 +52,6 @@ public:
         dbus_message_iter_next((DBusMessageIter *)&_iter);
 
         return (*this);
-    }
-
-    MessageIter operator ++(int)
-    {
-        MessageIter copy(*this);
-        ++(*this);
-
-        return copy;
     }
 
     bool append_string(const char *chars)
@@ -188,15 +178,12 @@ private:
 class Message
 {
 public:
-    bool destination(const std::string &s) const
-    {
-        return dbus_message_set_destination(msg, s.c_str());
-    }
+    explicit Message(DBusMessage* message) : message(message) {}
 
     MessageIter writer()
     {
         MessageIter iter(*this);
-        dbus_message_iter_init_append(msg, (DBusMessageIter *) & (iter._iter));
+        dbus_message_iter_init_append(message, (DBusMessageIter *) & (iter._iter));
 
         return iter;
     }
@@ -204,38 +191,35 @@ public:
     MessageIter reader() const
     {
         MessageIter iter(const_cast<Message &>(*this));
-        dbus_message_iter_init(msg, (DBusMessageIter *) & (iter._iter));
+        dbus_message_iter_init(message, (DBusMessageIter *) & (iter._iter));
 
         return iter;
     }
 
-    DBusMessage* msg{};
+    DBusMessage &msg() const
+    {
+        return *message;
+    }
+
+protected:
+    DBusMessage* message{};
 };
 
 class CallMessage : public Message
 {
 public:
-    CallMessage()
-    {
-        msg = dbus_message_new(DBUS_MESSAGE_TYPE_METHOD_CALL);
-    }
+    CallMessage() : Message(dbus_message_new(DBUS_MESSAGE_TYPE_METHOD_CALL)) {}
 
-    bool interface(const std::string &i) const
+    CallMessage(const std::string& member, const std::string& interface, const std::string& path, const std::string& destination)
+        : Message(dbus_message_new(DBUS_MESSAGE_TYPE_METHOD_CALL))
     {
-        return dbus_message_set_interface(msg, i.c_str());
-    }
-
-    bool member(const std::string &m) const
-    {
-        return dbus_message_set_member(msg, m.c_str());
-    }
-
-    bool path(const std::string &p) const
-    {
-        return dbus_message_set_path(msg, p.c_str());
+        dbus_message_set_member(message, member.c_str());
+        dbus_message_set_interface(message, interface.c_str());
+        dbus_message_set_path(message, path.c_str());
+        dbus_message_set_destination(message, destination.c_str());
     }
 };
 
 }
 
-#endif //__DBUSXX_MESSAGE_H
+#endif //MESSAGE_H

@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 
 project(waybar-tools)
 
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+    add_compile_definitions(DEBUG)
+endif ()
+
 file(GLOB src "src/*.cpp")
 file(GLOB modules "src/modules/*.cpp")
 

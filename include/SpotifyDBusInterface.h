@@ -5,15 +5,16 @@
 
 #include "dbus.h"
 
-class SpotifyDBusInterface : public DBus::Object
+class SpotifyDBusInterface
 {
 public:
-    SpotifyDBusInterface(const std::string &path, const std::string &name) : DBus::Object(path, name) {}
+    SpotifyDBusInterface() : connection(new DBus::Connection()) {}
     std::string PlaybackStatus() const;
     std::map<std::string, DBus::Variant> Metadata() const;
 
 private:
     DBus::Variant getProperty(const std::string &propertyName) const;
+    DBus::Connection* connection;
 };
 
 #endif //SPOTIFY_DBUS_INTERFACE_H
