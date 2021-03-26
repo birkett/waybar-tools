@@ -39,117 +39,119 @@ class MessageIter
 public:
     int type() const
     {
-        return dbus_message_iter_get_arg_type((DBusMessageIter *)&_iter);
+        return dbus_message_iter_get_arg_type((DBusMessageIter *)&iterator);
     }
 
-    bool at_end() const
+    bool atEnd() const
     {
         return type() == DBUS_TYPE_INVALID;
     }
 
     MessageIter &operator ++()
     {
-        dbus_message_iter_next((DBusMessageIter *)&_iter);
+        dbus_message_iter_next((DBusMessageIter *)&iterator);
 
         return (*this);
     }
 
-    bool append_string(const char *chars)
+    dbus_bool_t appendString(const char *chars)
     {
-        return append_basic(DBUS_TYPE_STRING, &chars);
+        return appendBasic(DBUS_TYPE_STRING, &chars);
     }
 
-    std::string get_string()
+    std::string getString()
     {
         char *chars;
-        get_basic(DBUS_TYPE_STRING, &chars);
+        getBasic(DBUS_TYPE_STRING, &chars);
 
         return chars;
     }
 
     MessageIter recurse() const
     {
-        MessageIter iter(msg());
-        dbus_message_iter_recurse((DBusMessageIter *)&_iter, (DBusMessageIter *) & (iter._iter));
+        MessageIter iter(getMessage());
+        dbus_message_iter_recurse((DBusMessageIter *)&iterator, (DBusMessageIter *) & (iter.iterator));
 
         return iter;
     }
 
     char *signature() const
     {
-        return dbus_message_iter_get_signature((DBusMessageIter *)&_iter);
+        return dbus_message_iter_get_signature((DBusMessageIter *)&iterator);
     }
 
-    bool is_array() const
+    bool isArray() const
     {
-        return dbus_message_iter_get_arg_type((DBusMessageIter *)&_iter) == DBUS_TYPE_ARRAY;
+        return dbus_message_iter_get_arg_type((DBusMessageIter *)&iterator) == DBUS_TYPE_ARRAY;
     }
 
-    bool is_dict() const
+    bool isDict() const
     {
-        return is_array() && dbus_message_iter_get_element_type((DBusMessageIter *)_iter) == DBUS_TYPE_DICT_ENTRY;
+        return isArray() && dbus_message_iter_get_element_type((DBusMessageIter *)iterator) == DBUS_TYPE_DICT_ENTRY;
     }
 
-    void close_container(MessageIter &container) const
+    void closeContainer(MessageIter &container) const
     {
-        dbus_message_iter_close_container((DBusMessageIter *)&_iter, (DBusMessageIter *) & (container._iter));
+        dbus_message_iter_close_container((DBusMessageIter *)&iterator, (DBusMessageIter *) & (container.iterator));
     }
 
-    void copy_data(MessageIter &to)
+    void copyData(MessageIter &to)
     {
-        for (MessageIter &from = *this; !from.at_end(); ++from) {
-            if (is_basic_type(from.type())) {
+        for (MessageIter &from = *this; !from.atEnd(); ++from) {
+            if (isBasicType(from.type())) {
                 unsigned char value[8];
-                from.get_basic(from.type(), &value);
-                to.append_basic(from.type(), &value);
-            } else {
-                MessageIter from_container = from.recurse();
-                char *sig = from_container.signature();
+                from.getBasic(from.type(), &value);
+                to.appendBasic(from.type(), &value);
 
-                MessageIter to_container(to.msg());
-                dbus_bool_t ret = dbus_message_iter_open_container(
-                        (DBusMessageIter *) & (to._iter),
-                        from.type(),
-                        (from.type() == DBUS_TYPE_VARIANT || from.type() == DBUS_TYPE_ARRAY) ? sig : nullptr,
-                        (DBusMessageIter *) & (to_container._iter)
-                );
-
-                if (!ret) {
-                    throw Error("org.freedesktop.DBus.Error.NoMemory", "Unable to append container");
-                }
-
-                from_container.copy_data(to_container);
-                to.close_container(to_container);
-                free(sig);
+                continue;
             }
+
+            MessageIter fromContainer = from.recurse();
+            char *sig = fromContainer.signature();
+
+            MessageIter toContainer(to.getMessage());
+            dbus_bool_t ret = dbus_message_iter_open_container(
+                (DBusMessageIter *) &to.iterator,
+                from.type(),
+                (from.type() == DBUS_TYPE_VARIANT || from.type() == DBUS_TYPE_ARRAY) ? sig : nullptr,
+                (DBusMessageIter *) &toContainer.iterator
+            );
+
+            if (!ret) {
+                throw Error("org.freedesktop.DBus.Error.NoMemory", "Unable to append container");
+            }
+
+            fromContainer.copyData(toContainer);
+            to.closeContainer(toContainer);
+            free(sig);
         }
     }
 
-    Message &msg() const
+    Message &getMessage() const
     {
-        return *_msg;
+        return *message;
     }
 
 private:
-    explicit MessageIter(Message &msg) : _msg(&msg) {}
+    explicit MessageIter(Message &message) : message(&message) {}
 
-    bool append_basic(int type_id, void *value) const
+    dbus_bool_t appendBasic(int type_id, void *value) const
     {
-        return dbus_message_iter_append_basic((DBusMessageIter *)&_iter, type_id, value);
+        return dbus_message_iter_append_basic((DBusMessageIter *)&iterator, type_id, value);
     }
 
-    void get_basic(int type_id, void *ptr) const
+    void getBasic(int type_id, void *ptr) const
     {
         if (type() != type_id) {
             throw Error("org.freedesktop.DBus.Error.InvalidArgs", "type mismatch");
         }
 
-        dbus_message_iter_get_basic((DBusMessageIter *)_iter, ptr);
+        dbus_message_iter_get_basic((DBusMessageIter *)iterator, ptr);
     }
 
-    static bool is_basic_type(int typecode)
+    static bool isBasicType(int typeCode)
     {
-        switch (typecode)
+        switch (typeCode)
         {
             case 'y':
             case 'b':
@@ -169,8 +171,8 @@ private:
         }
     }
 
-    unsigned char _iter[sizeof(void *) * 3 + sizeof(int) * 11] {};
-    Message *_msg {};
+    unsigned char iterator[sizeof(void *) * 3 + sizeof(int) * 11] {};
+    Message *message {};
 
     friend class Message;
 };
@@ -183,7 +185,7 @@ public:
     MessageIter writer()
     {
         MessageIter iter(*this);
-        dbus_message_iter_init_append(message, (DBusMessageIter *) & (iter._iter));
+        dbus_message_iter_init_append(message, (DBusMessageIter *) & (iter.iterator));
 
         return iter;
     }
@@ -191,12 +193,12 @@ public:
     MessageIter reader() const
     {
         MessageIter iter(const_cast<Message &>(*this));
-        dbus_message_iter_init(message, (DBusMessageIter *) & (iter._iter));
+        dbus_message_iter_init(message, (DBusMessageIter *) & (iter.iterator));
 
         return iter;
     }
 
-    DBusMessage &msg() const
+    DBusMessage &getMessage() const
     {
         return *message;
     }

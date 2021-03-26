@@ -22,15 +22,15 @@ std::string Spotify::getOutput()
         for (auto const& item : spotify->Metadata())
         {
             if (item.first == "xesam:artist") {
-                metadata.artist = item.second.reader().recurse().get_string();
+                metadata.artist = item.second.reader().recurse().getString();
             }
 
             if (item.first == "xesam:album") {
-                metadata.album = item.second.reader().get_string();
+                metadata.album = item.second.reader().getString();
             }
 
             if (item.first == "xesam:title") {
-                metadata.title = item.second.reader().get_string();
+                metadata.title = item.second.reader().getString();
             }
         }
     } catch (DBus::Error &error) {

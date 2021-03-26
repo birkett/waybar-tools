@@ -4,9 +4,9 @@ std::string Date::getOutput()
 {
     this->tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
-    char mbstr[32];
+    char buffer[32];
 
-    std::strftime(mbstr, sizeof(mbstr), "%a %d %b %T %Z %Y", std::localtime(&this->tt));
+    std::strftime(buffer, sizeof(buffer), "%a %d %b %T %Z %Y", std::localtime(&this->tt));
 
-    return std::string(mbstr);
+    return std::string(buffer);
 }

@@ -44,7 +44,7 @@ public:
         dbus_set_error_const(&(error), name.c_str(), message.c_str());
     }
 
-    bool hasError()
+    dbus_bool_t hasError()
     {
         return dbus_error_is_set(&error);
     }

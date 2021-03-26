@@ -51,7 +51,7 @@ public:
     inline explicit operator T() const
     {
         T cast;
-        DBus::MessageIter ri = message.reader();
+        MessageIter ri = message.reader();
         ri >> cast;
 
         return cast;
@@ -61,21 +61,21 @@ private:
     Message message;
 };
 
-inline DBus::MessageIter &operator << (DBus::MessageIter &iter, const std::string &val)
+inline MessageIter &operator << (MessageIter &iter, const std::string &val)
 {
-    iter.append_string(val.c_str());
+    iter.appendString(val.c_str());
 
     return iter;
 }
 
-inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, std::string &val)
+inline MessageIter &operator >> (MessageIter &iter, std::string &val)
 {
-    val = iter.get_string();
+    val = iter.getString();
 
     return ++iter;
 }
 
-inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, DBus::Variant &val)
+inline MessageIter &operator >> (MessageIter &iter, Variant &val)
 {
     if (iter.type() != DBUS_TYPE_VARIANT) {
         throw Error("org.freedesktop.DBus.Error.InvalidArgs", "variant type expected");
@@ -84,25 +84,25 @@ inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, DBus::Variant &v
     MessageIter vit = iter.recurse();
     MessageIter mit = val.writer();
 
-    vit.copy_data(mit);
+    vit.copyData(mit);
 
     return ++iter;
 }
 
 template<typename K, typename V>
-inline DBus::MessageIter &operator >> (DBus::MessageIter &iter, std::map<K, V>& val)
+inline MessageIter &operator >> (MessageIter &iter, std::map<K, V>& val)
 {
-    if (!iter.is_dict()) {
-        throw DBus::Error("org.freedesktop.DBus.Error.InvalidArgs", "dictionary value expected");
+    if (!iter.isDict()) {
+        throw Error("org.freedesktop.DBus.Error.InvalidArgs", "dictionary value expected");
     }
 
-    DBus::MessageIter mit = iter.recurse();
+    MessageIter mit = iter.recurse();
 
-    while (!mit.at_end()) {
+    while (!mit.atEnd()) {
         K key;
         V value;
 
-        DBus::MessageIter eit = mit.recurse();
+        MessageIter eit = mit.recurse();
 
         eit >> key >> value;
 
