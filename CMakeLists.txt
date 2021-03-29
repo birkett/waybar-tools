@@ -2,8 +2,11 @@ cmake_minimum_required(VERSION 2.8)
 
 project(waybar-tools)
 
+set(OPTIMISATION_LEVEL "-Os")
+
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
     add_compile_definitions(DEBUG)
+    set(OPTIMISATION_LEVEL "-O0")
 endif ()
 
 file(GLOB src "src/*.cpp")
@@ -18,4 +21,4 @@ target_include_directories(waybar-tools PRIVATE "/usr/lib/x86_64-linux-gnu/dbus-
 
 target_link_libraries(waybar-tools -ldbus-1)
 
-target_compile_options(waybar-tools PRIVATE -Wall -Wpedantic -Wextra -Werror)
+target_compile_options(waybar-tools PRIVATE -Wall -Wpedantic -Wextra -Werror ${OPTIMISATION_LEVEL})
