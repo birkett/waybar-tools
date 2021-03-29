@@ -28,21 +28,29 @@ int main (int argc, char** argv)
         return 0;
     }
 
+    ModuleInterface* module = nullptr;
+
     if (std::string(argv[1]) == "battery") {
-        start(new Battery());
+        module = new Battery();
     }
 
     if (std::string(argv[1]) == "date") {
-        start(new Date());
+        module = new Date();
     }
 
     if (std::string(argv[1]) == "keyboard") {
-        start(new Keyboard());
+        module = new Keyboard();
     }
 
     if (std::string(argv[1]) == "spotify") {
-        start(new Spotify());
+        module = new Spotify();
     }
+
+    if (module) {
+        start(module);
+    }
+
+    delete module;
 
     return 0;
 }
