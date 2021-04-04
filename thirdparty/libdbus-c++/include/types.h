@@ -23,6 +23,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <dbus/dbus.h>
 #include <map>
 #include <string>
 
@@ -35,7 +36,7 @@ namespace DBus
 class Variant
 {
 public:
-    Variant() : message(CallMessage()) {}
+    Variant() : message(EmptyMessage()) {}
 
     MessageIter reader() const
     {

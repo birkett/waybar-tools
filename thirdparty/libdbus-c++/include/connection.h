@@ -36,22 +36,38 @@ public:
     {
         Error error;
 
-        conn = dbus_bus_get_private(DBUS_BUS_SESSION, (DBusError*)error);
+        this->conn = dbus_bus_get_private(DBUS_BUS_SESSION, (DBusError*)error);
 
         if (error.hasError()) {
-            throw Error(error);
+            std::string errorMessage(error.message());
+            dbus_error_free((DBusError*)error);
+
+            throw Error("DBus Error:", errorMessage);
         }
 
-        dbus_connection_set_exit_on_disconnect(conn, dbus_bool_t(false));
+        dbus_connection_set_exit_on_disconnect(this->conn, dbus_bool_t(false));
+    }
+
+    ~Connection()
+    {
+        dbus_connection_close(this->conn);
     }
 
     Message sendBlocking(const Message &message) const
     {
         Error error;
-        DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, &message.getMessage(), -1, (DBusError*)error);
+        DBusMessage *reply = dbus_connection_send_with_reply_and_block(
+            this->conn,
+            &message.getMessage(),
+            -1,
+            (DBusError*)error
+        );
 
         if (error.hasError()) {
-            throw Error(error);
+            std::string errorMessage(error.message());
+            dbus_error_free((DBusError*)error);
+
+            throw Error("DBus Error:", errorMessage);
         }
 
         return Message(reply);

@@ -11,6 +11,11 @@ Spotify::Spotify()
     this->spotify = new SpotifyDBusInterface();
 }
 
+Spotify::~Spotify()
+{
+    delete this->spotify;
+}
+
 std::string Spotify::getOutput()
 {
     SpotifyMeta metadata;

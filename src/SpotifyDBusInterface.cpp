@@ -1,5 +1,10 @@
 #include "SpotifyDBusInterface.h"
 
+SpotifyDBusInterface::~SpotifyDBusInterface()
+{
+    delete this->connection;
+}
+
 std::string SpotifyDBusInterface::PlaybackStatus() const
 {
     return (std::string)this->getProperty("PlaybackStatus");
@@ -23,7 +28,7 @@ DBus::Variant SpotifyDBusInterface::getProperty(const std::string &propertyName)
 
     wi << std::string("org.mpris.MediaPlayer2.Player") << propertyName;
 
-    DBus::MessageIter ri = connection->sendBlocking(call).reader();
+    DBus::MessageIter ri = this->connection->sendBlocking(call).reader();
     DBus::Variant out;
     ri >> out;
 

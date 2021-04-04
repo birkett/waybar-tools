@@ -70,6 +70,7 @@ class Spotify : public ModuleInterface
 {
 public:
     Spotify();
+    ~Spotify();
 
     std::string getOutput() final;
 

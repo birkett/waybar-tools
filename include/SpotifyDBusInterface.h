@@ -9,6 +9,8 @@ class SpotifyDBusInterface
 {
 public:
     SpotifyDBusInterface() : connection(new DBus::Connection()) {}
+    ~SpotifyDBusInterface();
+
     std::string PlaybackStatus() const;
     std::map<std::string, DBus::Variant> Metadata() const;
 

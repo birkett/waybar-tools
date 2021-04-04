@@ -182,6 +182,11 @@ class Message
 public:
     explicit Message(DBusMessage* message) : message(message) {}
 
+    ~Message()
+    {
+        dbus_message_unref(message);
+    }
+
     MessageIter writer()
     {
         MessageIter iter(*this);
@@ -210,8 +215,6 @@ protected:
 class CallMessage : public Message
 {
 public:
-    CallMessage() : Message(dbus_message_new(DBUS_MESSAGE_TYPE_METHOD_CALL)) {}
-
     CallMessage(const std::string& member, const std::string& interface, const std::string& path, const std::string& destination)
         : Message(dbus_message_new(DBUS_MESSAGE_TYPE_METHOD_CALL))
     {
@@ -219,6 +222,16 @@ public:
         dbus_message_set_interface(message, interface.c_str());
         dbus_message_set_path(message, path.c_str());
         dbus_message_set_destination(message, destination.c_str());
+    }
+};
+
+class EmptyMessage : public Message
+{
+public:
+    EmptyMessage() : Message(dbus_message_new(DBUS_MESSAGE_TYPE_METHOD_CALL))
+    {
+        dbus_message_ref(this->message);
+        dbus_message_ref(this->message);
     }
 };
 

@@ -6,6 +6,8 @@
 class ModuleInterface
 {
 public:
+    virtual ~ModuleInterface() = default;
+
     virtual std::string getOutput() = 0;
 };
 
