@@ -14,37 +14,37 @@ public:
     std::string album;
     std::string title;
 
-    bool isPlaying() const
+    [[nodiscard]] bool isPlaying() const
     {
         return this->status == "Playing";
     }
 
-    bool isPaused() const
+    [[nodiscard]] bool isPaused() const
     {
         return this->status == "Paused";
     }
 
-    bool isStopped() const
+    [[nodiscard]] bool isStopped() const
     {
         return this->status == "Stopped";
     }
 
-    bool hasArtist() const
+    [[nodiscard]] bool hasArtist() const
     {
         return this->artist.length() > 0;
     }
 
-    bool hasAlbum() const
+    [[nodiscard]] bool hasAlbum() const
     {
         return this->album.length() > 0;
     }
 
-    bool hasTitle() const
+    [[nodiscard]] bool hasTitle() const
     {
         return this->title.length() > 0;
     }
 
-    std::string toString() const
+    [[nodiscard]] std::string toString() const
     {
         std::string output;
 
@@ -70,7 +70,7 @@ class Spotify : public ModuleInterface
 {
 public:
     Spotify();
-    ~Spotify();
+    ~Spotify() override;
 
     std::string getOutput() final;
 

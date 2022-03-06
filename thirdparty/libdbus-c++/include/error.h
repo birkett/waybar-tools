@@ -54,12 +54,12 @@ public:
         return &error;
     }
 
-    const char *what() const noexcept override
+    [[nodiscard]] const char *what() const noexcept override
     {
         return error.message;
     }
 
-    const char *message() const
+    [[nodiscard]] const char *message() const
     {
         return error.message;
     }

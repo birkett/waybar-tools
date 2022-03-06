@@ -11,11 +11,11 @@ public:
     SpotifyDBusInterface() : connection(new DBus::Connection()) {}
     ~SpotifyDBusInterface();
 
-    std::string PlaybackStatus() const;
-    std::map<std::string, DBus::Variant> Metadata() const;
+    [[nodiscard]] std::string PlaybackStatus() const;
+    [[nodiscard]] std::map<std::string, DBus::Variant> Metadata() const;
 
 private:
-    DBus::Variant getProperty(const std::string &propertyName) const;
+    [[nodiscard]] DBus::Variant getProperty(const std::string &propertyName) const;
     DBus::Connection* connection;
 };
 

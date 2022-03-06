@@ -53,7 +53,7 @@ public:
         dbus_connection_close(this->conn);
     }
 
-    Message sendBlocking(const Message &message) const
+    [[nodiscard]] Message sendBlocking(const Message &message) const
     {
         Error error;
         DBusMessage *reply = dbus_connection_send_with_reply_and_block(

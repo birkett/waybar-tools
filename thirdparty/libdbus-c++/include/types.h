@@ -38,7 +38,7 @@ class Variant
 public:
     Variant() : message(EmptyMessage()) {}
 
-    MessageIter reader() const
+    [[nodiscard]] MessageIter reader() const
     {
         return message.reader();
     }

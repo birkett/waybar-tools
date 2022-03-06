@@ -37,12 +37,12 @@ class Message;
 class MessageIter
 {
 public:
-    int type() const
+    [[nodiscard]] int type() const
     {
         return dbus_message_iter_get_arg_type((DBusMessageIter *)&iterator);
     }
 
-    bool atEnd() const
+    [[nodiscard]] bool atEnd() const
     {
         return type() == DBUS_TYPE_INVALID;
     }
@@ -67,7 +67,7 @@ public:
         return chars;
     }
 
-    MessageIter recurse() const
+    [[nodiscard]] MessageIter recurse() const
     {
         MessageIter iter(getMessage());
         dbus_message_iter_recurse((DBusMessageIter *)&iterator, (DBusMessageIter *) & (iter.iterator));
@@ -75,17 +75,17 @@ public:
         return iter;
     }
 
-    char *signature() const
+    [[nodiscard]] char *signature() const
     {
         return dbus_message_iter_get_signature((DBusMessageIter *)&iterator);
     }
 
-    bool isArray() const
+    [[nodiscard]] bool isArray() const
     {
         return dbus_message_iter_get_arg_type((DBusMessageIter *)&iterator) == DBUS_TYPE_ARRAY;
     }
 
-    bool isDict() const
+    [[nodiscard]] bool isDict() const
     {
         return isArray() && dbus_message_iter_get_element_type((DBusMessageIter *)iterator) == DBUS_TYPE_DICT_ENTRY;
     }
@@ -127,7 +127,7 @@ public:
         }
     }
 
-    Message &getMessage() const
+    [[nodiscard]] Message &getMessage() const
     {
         return *message;
     }
@@ -195,7 +195,7 @@ public:
         return iter;
     }
 
-    MessageIter reader() const
+    [[nodiscard]] MessageIter reader() const
     {
         MessageIter iter(const_cast<Message &>(*this));
         dbus_message_iter_init(message, (DBusMessageIter *) & (iter.iterator));
@@ -203,7 +203,7 @@ public:
         return iter;
     }
 
-    DBusMessage &getMessage() const
+    [[nodiscard]] DBusMessage &getMessage() const
     {
         return *message;
     }
