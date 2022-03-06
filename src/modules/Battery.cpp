@@ -13,8 +13,6 @@ int Battery::batteryCharge()
 
 std::string Battery::batteryIcon(int charge)
 {
-    std::string batteryIcon;
-
     if (charge < 10) {
         return "\uF244"; // Battery empty icon.
     }

@@ -8,5 +8,5 @@ std::string Date::getOutput()
 
     std::strftime(buffer, sizeof(buffer), "%a %d %b %T %Z %Y", std::localtime(&this->tt));
 
-    return std::string(buffer);
+    return { buffer };
 }
