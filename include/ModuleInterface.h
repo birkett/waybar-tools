@@ -9,6 +9,8 @@ public:
     virtual ~ModuleInterface() = default;
 
     virtual std::string getOutput() = 0;
+
+    virtual unsigned short getRefreshTimeMs() = 0;
 };
 
 #endif //MODULE_INTERFACE_H

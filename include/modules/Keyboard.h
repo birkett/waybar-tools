@@ -9,6 +9,7 @@ class Keyboard : public ModuleInterface
 {
 public:
     std::string getOutput() final;
+    unsigned short getRefreshTimeMs() final;
 
 private:
     static int capsLockState();

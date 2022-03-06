@@ -12,6 +12,7 @@ public:
     Date() : tt(0) {};
 
     std::string getOutput() final;
+    unsigned short getRefreshTimeMs() final;
 
 private:
     time_t tt;

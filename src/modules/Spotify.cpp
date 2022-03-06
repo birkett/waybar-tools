@@ -16,6 +16,11 @@ Spotify::~Spotify()
     delete this->spotify;
 }
 
+unsigned short Spotify::getRefreshTimeMs()
+{
+    return 1000;
+}
+
 std::string Spotify::getOutput()
 {
     SpotifyMeta metadata;

@@ -16,6 +16,11 @@ int Keyboard::scrollLockState()
     return loadIntFromSysFs("/sys/class/leds/input0::scrolllock/brightness");
 }
 
+unsigned short Keyboard::getRefreshTimeMs()
+{
+    return 500;
+}
+
 std::string Keyboard::getOutput()
 {
     std::string outputString;

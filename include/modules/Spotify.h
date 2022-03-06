@@ -73,6 +73,7 @@ public:
     ~Spotify() override;
 
     std::string getOutput() final;
+    unsigned short getRefreshTimeMs() final;
 
 private:
     static std::string getIcons(const SpotifyMeta &meta);

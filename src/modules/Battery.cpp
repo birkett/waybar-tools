@@ -32,6 +32,11 @@ std::string Battery::batteryIcon(int charge)
     return "\uF240"; // Battery full icon.
 }
 
+unsigned short Battery::getRefreshTimeMs()
+{
+    return 1000;
+}
+
 std::string Battery::getOutput()
 {
     int charge = batteryCharge();

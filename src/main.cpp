@@ -7,18 +7,33 @@
 #include "modules/Keyboard.h"
 #include "modules/Spotify.h"
 
-bool stop = false;
-
+#ifndef DEBUG
+[[noreturn]]
+#endif
 void start(ModuleInterface* module)
 {
-    std::chrono::seconds oneSecond(1);
-    auto next = std::chrono::system_clock::now() + oneSecond;
+#ifdef DEBUG
+    int iterations = 0;
+    std::chrono::milliseconds delayMs(1);
+#else
+    std::chrono::milliseconds delayMs(module->getRefreshTimeMs());
+#endif
+    auto next = std::chrono::system_clock::now() + delayMs;
 
-    while (!stop) {
+    while (true) {
+#ifdef DEBUG
+#define MAX_ITERATIONS 2500
+        if (iterations > MAX_ITERATIONS) {
+            return;
+        }
+#endif
         std::cout << module->getOutput() << std::endl;
 
         std::this_thread::sleep_until(next);
-        next += oneSecond;
+        next += delayMs;
+#ifdef DEBUG
+        iterations++;
+#endif
     }
 }
 
